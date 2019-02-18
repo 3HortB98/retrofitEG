@@ -1,6 +1,7 @@
 package com.example.retrofit_eg;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
@@ -28,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button btnSearch;
     EditText etInput;
 
-    ItemAdapter itemAdapter = new ItemAdapter();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,13 +37,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnSearch = findViewById(R.id.btnSearch);
         etInput = findViewById(R.id.etInput);
 
-        RecyclerView recyclerView = findViewById(R.id.rvData);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        DividerItemDecoration divider = new DividerItemDecoration(this,linearLayoutManager.getOrientation());
-        recyclerView.addItemDecoration(divider);
 
-        recyclerView.setAdapter(itemAdapter);
         btnSearch.setOnClickListener(this);
 
 
@@ -61,36 +56,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void handleSearchClick(){
         String etName = etInput.getText().toString();
 
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(20, TimeUnit.SECONDS)
-                .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-                .build();
+        Intent intent = new Intent(MainActivity.this, ResultsActivity.class);
+        intent.putExtra("input",etName);
+        startActivity(intent);
 
-        Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
-                .baseUrl(Constants.BASE_URL)
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create());
 
-        Retrofit retrofit = retrofitBuilder.build();
 
-        GithubService githubService = retrofit.create(GithubService.class);
-
-        githubService.getRepos(etName).enqueue(new Callback<List<GithubRepo>>() {
-            @Override
-            public void onResponse(Call<List<GithubRepo>> call, Response<List<GithubRepo>> response) {
-                if(response.isSuccessful()){
-                    itemAdapter.setData(response.body());
-                }else{
-                    Toast.makeText(MainActivity.this,"No results found", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<GithubRepo>> call, Throwable t) {
-                Toast.makeText(MainActivity.this,"Network failure", Toast.LENGTH_SHORT).show();
-
-            }
-        });
-        btnSearch.onEditorAction(EditorInfo.IME_ACTION_DONE);
     }
 }
